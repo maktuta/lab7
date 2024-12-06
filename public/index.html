@@ -1,89 +1,42 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Створення вкладок</title>
-    <style>
-        .tabs { display: flex; list-style: none; padding: 0; margin: 0; }
-        .tab { padding: 10px; border: 1px solid #ccc; cursor: pointer; }
-        .tab-content { display: none; padding: 10px; border: 1px solid #ccc; }
-        .active-tab { background-color: #ddd; }
-        .active-content { display: block; }
-    </style>
+    <title>Створити вкладку</title>
 </head>
 <body>
-    <h1>Створення вкладок</h1>
-    <form id="tabsForm">
-        <label for="tabCount">Кількість вкладок:</label>
-        <input type="number" id="tabCount" name="tabCount" min="1" value="1">
-        <button type="submit">Створити вкладки</button>
-    </form>
-
-    <div id="tabsContainer"></div>
+    <h1>Додати нову вкладку</h1>
+    <div>
+        <input type="text" id="tab-name" placeholder="Введіть назву вкладки">
+        <button onclick="createTab()">Додати вкладку</button>
+    </div>
+    <div id="message"></div>
 
     <script>
-        document.getElementById("tabsForm").addEventListener("submit", async function(event) {
-            event.preventDefault();
-            const tabCount = document.getElementById("tabCount").value;
-            const container = document.getElementById("tabsContainer");
-            container.innerHTML = '';  // Очистити контейнер перед створенням нових вкладок
-
-            let tabsData = [];
-
-            for (let i = 0; i < tabCount; i++) {
-                const tabName = prompt(`Введіть назву для вкладки ${i + 1}`);
-                const tabContent = prompt(`Введіть контент для вкладки ${i + 1}`);
-                
-                const tabElement = document.createElement("div");
-                tabElement.classList.add("tab");
-                tabElement.innerText = tabName;
-                tabElement.dataset.tabIndex = i;
-
-                const contentElement = document.createElement("div");
-                contentElement.classList.add("tab-content");
-                contentElement.innerText = tabContent;
-                contentElement.dataset.tabIndex = i;
-
-                container.appendChild(tabElement);
-                container.appendChild(contentElement);
-
-                tabsData.push({ name: tabName, content: tabContent });
+        // Додавання нової вкладки
+        async function createTab() {
+            const tabName = document.getElementById('tab-name').value;
+            if (!tabName) {
+                alert('Введіть назву вкладки!');
+                return;
             }
 
-            // Збереження вкладок на сервері
-            await saveTabsData(tabsData);
+            const newTab = { name: tabName };
 
-            // Додавання обробника подій для вкладок
-            document.querySelectorAll(".tab").forEach(tab => {
-                tab.addEventListener("click", function() {
-                    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active-tab"));
-                    tab.classList.add("active-tab");
-
-                    const tabIndex = tab.dataset.tabIndex;
-                    document.querySelectorAll(".tab-content").forEach(content => {
-                        content.classList.remove("active-content");
-                        if (content.dataset.tabIndex === tabIndex) {
-                            content.classList.add("active-content");
-                        }
-                    });
-                });
+            // Відправка нової вкладки на сервер
+            const response = await fetch('/tabs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newTab)
             });
-        });
 
-        async function saveTabsData(tabsData) {
-            try {
-                const response = await fetch('/saveTabs', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(tabsData),
-                });
-                const result = await response.json();
-                console.log(result.message);
-            } catch (error) {
-                console.error('Помилка при збереженні вкладок:', error);
+            if (response.ok) {
+                document.getElementById('message').innerHTML = 'Вкладка успішно додана!';
+            } else {
+                document.getElementById('message').innerHTML = 'Помилка при додаванні вкладки!';
             }
         }
     </script>

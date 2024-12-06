@@ -1,21 +1,41 @@
 const express = require('express');
 const fs = require('fs');
+const path = require('path');
 const app = express();
-
-// Використання порту зі змінної середовища або за замовчуванням 8080
 const port = process.env.PORT || 8080;
 
-// Налаштування статичних файлів
+// Використовуємо статичні файли
 app.use(express.static('public'));
+app.use(express.json());  // Для парсингу JSON
 
-// Головна сторінка (index.html)
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
+// Функція для читання вкладок із файлу
+function getTabs() {
+    try {
+        const data = fs.readFileSync(path.join(__dirname, 'tabsData.json'), 'utf-8');
+        return JSON.parse(data);
+    } catch (err) {
+        return [];  // Якщо файл не знайдено або порожній, повертаємо порожній масив
+    }
+}
+
+// Функція для збереження вкладок у файл
+function saveTabs(tabs) {
+    fs.writeFileSync(path.join(__dirname, 'tabsData.json'), JSON.stringify(tabs, null, 2));
+}
+
+// Маршрут для отримання вкладок
+app.get('/tabs', (req, res) => {
+    const tabs = getTabs();
+    res.json(tabs);
 });
 
-// Маршрут для index2.html
-app.get('/index2', (req, res) => {
-    res.sendFile(__dirname + '/public/index2.html');
+// Маршрут для додавання нової вкладки
+app.post('/tabs', (req, res) => {
+    const newTab = req.body;
+    const tabs = getTabs();
+    tabs.push(newTab);
+    saveTabs(tabs);
+    res.status(201).json(newTab);
 });
 
 // Запуск сервера

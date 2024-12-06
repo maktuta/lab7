@@ -2,16 +2,23 @@ const express = require('express');
 const fs = require('fs');
 const app = express();
 
-// Використання порту зі змінної середовища або за замовчуванням 3000
-const port = process.env.PORT || 3000;
+// Використання порту зі змінної середовища або за замовчуванням 8080
+const port = process.env.PORT || 8080;
 
+// Налаштування статичних файлів
 app.use(express.static('public'));
 
-// Приклади маршрутів
+// Головна сторінка (index.html)
 app.get('/', (req, res) => {
-    res.send('Сервер працює!');
+    res.sendFile(__dirname + '/public/index.html');
 });
 
+// Маршрут для index2.html
+app.get('/index2', (req, res) => {
+    res.sendFile(__dirname + '/public/index2.html');
+});
+
+// Запуск сервера
 app.listen(port, () => {
     console.log(`Сервер запущено на http://localhost:${port}`);
 });

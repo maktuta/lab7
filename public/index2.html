@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Відображення вкладок</title>
+    <style>
+        .tabs { display: flex; list-style: none; padding: 0; margin: 0; }
+        .tab { padding: 10px; border: 1px solid #ccc; cursor: pointer; }
+        .tab-content { display: none; padding: 10px; border: 1px solid #ccc; }
+        .active-tab { background-color: #ddd; }
+        .active-content { display: block; }
+    </style>
+</head>
+<body>
+    <h1>Відображення вкладок</h1>
+    <div id="tabsContainer"></div>
+
+    <script>
+        async function fetchTabs() {
+            try {
+                const response = await fetch('/getTabs');
+                const tabsData = await response.json();
+                
+                const container = document.getElementById("tabsContainer");
+                container.innerHTML = ''; // Очищаємо контейнер
+
+                tabsData.forEach((tab, index) => {
+                    const tabElement = document.createElement("div");
+                    tabElement.classList.add("tab");
+                    tabElement.innerText = tab.name;
+                    tabElement.dataset.tabIndex = index;
+
+                    const contentElement = document.createElement("div");
+                    contentElement.classList.add("tab-content");
+                    contentElement.innerText = tab.content;
+                    contentElement.dataset.tabIndex = index;
+
+                    container.appendChild(tabElement);
+                    container.appendChild(contentElement);
+                });
+
+                document.querySelectorAll(".tab").forEach(tab => {
+                    tab.addEventListener("click", function() {
+                        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active-tab"));
+                        tab.classList.add("active-tab");
+
+                        const tabIndex = tab.dataset.tabIndex;
+                        document.querySelectorAll(".tab-content").forEach(content => {
+                            content.classList.remove("active-content");
+                            if (content.dataset.tabIndex === tabIndex) {
+                                content.classList.add("active-content");
+                            }
+                        });
+                    });
+                });
+            } catch (error) {
+                console.error("Помилка при завантаженні вкладок:", error);
+            }
+        }
+
+        fetchTabs(); // Викликаємо функцію завантаження вкладок при завантаженні сторінки
+
+        // Періодичне оновлення вкладок кожні 5 секунд
+        setInterval(fetchTabs, 5000);
+    </script>
+</body>
+</html>
